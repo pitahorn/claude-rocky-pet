@@ -85,6 +85,17 @@ fail a Claude turn. It also walks up the process tree to find the `claude`
 process's tty, which is what lets a pill focus the exact terminal tab that
 pinged. Hooks load on the next Claude Code session.
 
+### Skills
+
+`skills/` holds two Claude Code skills for driving the pet from a session —
+`/wake-rocky` (restart it after the × button) and `/rocky-celebrate` (make it
+dance when something lands). Install them by copying or symlinking:
+
+```sh
+ln -s "$PWD/skills/wake-rocky" ~/.claude/skills/wake-rocky
+ln -s "$PWD/skills/rocky-celebrate" ~/.claude/skills/rocky-celebrate
+```
+
 > The hook appends raw `Notification` payloads to `~/.rocky-pet/hook-debug.log`
 > to confirm the `permission_prompt` field in the wild. Delete the
 > "truth-capture" block in `hooks/rocky-ping.sh` if you don't want that.
