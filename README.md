@@ -136,6 +136,7 @@ CLI / Claude hook ──writes──▶ ~/.rocky-pet/signal.json {action, ts}
 | `renderer/hats.js` | six hats and their accessories (`window.RockyHats`) |
 | `bin/rocky` | the CLI that writes the signal file |
 | `hooks/rocky-ping.sh` | Claude Code hook → CLI, plus tty/session detection |
+| `CLAUDE.md` | the pet's voice + house rules, for a coding agent working in here |
 
 State lives in `~/.rocky-pet/`: `signal.json` (the inbox), `position.json`
 (where you dragged it), `prefs.json` (ball + hat).
