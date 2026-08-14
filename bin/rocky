@@ -1,0 +1,57 @@
+#!/usr/bin/env node
+"use strict";
+
+// Tiny CLI that pokes the floating Rocky pet.
+//   rocky jump   -> little hop  (used for "ping" / task done / needs input)
+//   rocky yay    -> rocky-yay gif
+//   rocky dance  -> rocky-dance-yay gif (bug solved!)
+//   rocky walk   -> stroll horizontally across the screen
+//   rocky nag    -> after-hours "go home" nag (5 bounces)
+//   rocky idle   -> settle back to still
+//   rocky ball   -> put Rocky in / take him out of his ball
+//   rocky hat [name] -> next hat, or a named one (tophat|party|beanie|hardhat|paper|cap)
+
+const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
+
+const SIGNAL_DIR = path.join(os.homedir(), ".rocky-pet");
+const SIGNAL_FILE = path.join(SIGNAL_DIR, "signal.json");
+const VALID = new Set([
+  "jump",
+  "yay",
+  "dance",
+  "idle",
+  "ping",
+  "done",
+  "walk",
+  "nag",
+  "greet",
+  "permreq",
+  "ball",
+  "hat",
+]);
+
+const action = (process.argv[2] || "jump").toLowerCase();
+const arg = (process.argv[3] || "").toLowerCase();
+
+if (!VALID.has(action)) {
+  console.error(`rocky: unknown action "${action}".`);
+  console.error(`usage: rocky <${[...VALID].join("|")}>`);
+  process.exit(1);
+}
+
+// The hook passes the originating Claude session's terminal tty + a human
+// label via env, so the pet can offer a "jump to that terminal" button.
+const tty = process.env.ROCKY_TTY || "";
+const label = process.env.ROCKY_LABEL || "";
+const sessionId = process.env.ROCKY_SESSION || "";
+
+const payload = { action, ts: Date.now() };
+if (arg) payload.arg = arg;
+if (tty) payload.tty = tty;
+if (label) payload.label = label;
+if (sessionId) payload.sessionId = sessionId;
+
+fs.mkdirSync(SIGNAL_DIR, { recursive: true });
+fs.writeFileSync(SIGNAL_FILE, JSON.stringify(payload));

@@ -1,0 +1,12 @@
+{
+  "name": "rocky-pet",
+  "version": "1.0.0",
+  "description": "Tiny transparent floating Rocky pet that reacts to Claude Code pings.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^33.0.0"
+  }
+}

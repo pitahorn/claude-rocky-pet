@@ -1,0 +1,327 @@
+:root {
+  --rocky-size: 120px;
+  /* How far the base content is pushed right to stay pinned when the window
+     grows leftward for the auto-mode nudge. Driven from pet.js. */
+  --shift-x: 0px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: default;
+}
+
+/* The whole window is draggable except elements marked .no-drag. */
+body {
+  -webkit-app-region: drag;
+}
+
+/* A faint white veil makes the (otherwise invisible) click-blocking window
+   bounds visible. It lives in a blurred layer BEHIND Rocky so its edges
+   feather softly into the desktop — no harsh rectangle — while Rocky himself
+   stays sharp. Inset keeps the feathered edge clear of the window's hard clip. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 26px;
+  background: rgba(255, 255, 255, 0.025);
+  border-radius: 38px;
+  filter: blur(18px);
+  pointer-events: none;
+  z-index: -1;
+}
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
+#stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Holds everything anchored to Rocky's base rect. Shifted right by --shift-x so
+   that, when the window grows leftward to fit the auto-mode nudge, Rocky and
+   the right-side session stack stay glued to the same screen position. */
+#base {
+  position: absolute;
+  inset: 0;
+  transform: translateX(var(--shift-x));
+}
+
+/* --- "Forgot auto-mode?" nudge (left of Rocky, warm so it reads apart from the
+   blue session pills). `left` is set from pet.js once its width is measured. --- */
+.auto-nudge {
+  position: absolute;
+  bottom: 56px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.auto-nudge-body {
+  border: none;
+  border-radius: 14px;
+  padding: 6px 11px;
+  background: #f1c794;
+  color: #1a1a1a;
+  font: 700 12.5px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(120, 80, 10, 0.4);
+  opacity: 0;
+  transform: translateY(6px) scale(0.92);
+  animation: session-pop 200ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.auto-nudge-body:hover {
+  background: #f6d6ad;
+}
+
+.auto-nudge-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(26, 26, 26, 0.55);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  animation: session-pop 200ms cubic-bezier(0.34, 1.56, 0.64, 1) 60ms forwards;
+}
+
+.auto-nudge-close:hover {
+  background: rgba(220, 60, 60, 0.9);
+}
+
+/* --- Session "jump to terminal" buttons (stack to Rocky's right, grow up) ---
+   Anchored by bottom+left so the column grows upward and the window resize
+   (which pins the left + bottom edges) keeps the pills glued beside Rocky.
+   left/bottom MUST match SESSIONS_LEFT_PX / SESSIONS_BOTTOM_PX in pet.js. */
+.sessions {
+  position: absolute;
+  left: 220px;
+  bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.session {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 200px;
+  border: none;
+  border-radius: 14px;
+  padding: 6px 11px;
+  background: rgba(37, 99, 235, 0.96);
+  color: #fff;
+  font: 600 13px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(15, 40, 110, 0.45);
+  opacity: 0;
+  transform: translateY(6px) scale(0.92);
+  animation: session-pop 200ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.session:hover {
+  background: rgba(59, 130, 246, 1);
+}
+
+.session-icon {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.session-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@keyframes session-pop {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.rocky {
+  position: absolute;
+  bottom: 14px;
+  left: 90px; /* centers the 120px box at x=150 (center of the base window) */
+  width: var(--rocky-size);
+  height: var(--rocky-size);
+  cursor: grab;
+  transform-origin: bottom center;
+  will-change: transform;
+}
+
+.rocky.dragging {
+  cursor: grabbing;
+}
+
+.layer {
+  position: absolute;
+  /* Shared bottom baseline + horizontal center, so swapping poses of different
+     sizes never shifts Rocky's feet. Width/height are set per-pose in JS. */
+  bottom: 0;
+  left: 50%;
+  z-index: 1;
+  transform: translateX(-50%);
+  image-rendering: auto;
+  /* Stop macOS from native-dragging the image as a file into desktop/browser. */
+  -webkit-user-drag: none;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* --- The ball. Rocky sits BETWEEN the two halves, which is what sells him as
+   being inside the sphere rather than beside a circle. Stacking is by z-index,
+   not DOM order, so the layers can be appended in any order. --- */
+.ball-layer,
+.ball-hat,
+.ball-accessory {
+  position: absolute;
+  left: 50%;
+  pointer-events: none;
+}
+
+.ball-back {
+  z-index: 0;
+}
+
+.ball-front {
+  z-index: 2;
+}
+
+.ball-hat,
+.ball-accessory {
+  z-index: 3;
+  overflow: visible;
+}
+
+.hidden {
+  display: none;
+}
+
+/* --- Ping: a quick little hop + squash-and-stretch pop --- */
+.jump {
+  animation: rocky-hop 620ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes rocky-hop {
+  0% {
+    transform: translateY(0) scale(1, 1);
+  }
+  18% {
+    transform: translateY(0) scale(1.12, 0.88);
+  }
+  45% {
+    transform: translateY(-26px) scale(0.94, 1.08);
+  }
+  70% {
+    transform: translateY(0) scale(1.08, 0.92);
+  }
+  85% {
+    transform: translateY(-6px) scale(1, 1);
+  }
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+}
+
+/* --- Idle breathing so the frozen pose still feels alive --- */
+.rocky.breathing {
+  animation: rocky-breathe 3.6s ease-in-out infinite;
+}
+
+@keyframes rocky-breathe {
+  0%,
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+  50% {
+    transform: translateY(-1.5px) scale(1.012, 0.992);
+  }
+}
+
+/* --- Speech bubble --- */
+.bubble {
+  position: absolute;
+  top: 6px;
+  left: 150px; /* anchored over Rocky (center of base window), not the window */
+  transform: translateX(-50%) translateY(6px) scale(0.8);
+  background: #1a1a1a;
+  color: #fff;
+  font: 600 12px/1.25 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  padding: 5px 10px;
+  border-radius: 12px;
+  max-width: calc(100% - 16px);
+  text-align: center;
+  white-space: normal;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #1a1a1a;
+}
+
+.bubble.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+/* --- Quit button (appears on hover) --- */
+.quit {
+  position: absolute;
+  bottom: 104px; /* upper-left of Rocky, bottom-anchored so it rides the resize */
+  left: 70px;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(26, 26, 26, 0.55);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 140ms ease;
+}
+
+#stage:hover .quit {
+  opacity: 1;
+}
+
+.quit:hover {
+  background: rgba(220, 60, 60, 0.9);
+}
