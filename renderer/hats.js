@@ -164,6 +164,70 @@
     ]);
   }
 
+  // --- The dieciocho kit -------------------------------------------------------
+  // Chupalla and sombrero de huaso are one silhouette in two materials — straw
+  // and black felt — so both are cut from the same body.
+  const HUASO_CROWN = "M27 88 L27 56 Q50 50 73 56 L73 88 Q50 95 27 88 Z";
+  const HUASO_SHEEN = "M31 60 Q35 53 45 51 Q37 60 35 87 Z";
+  const HUASO_BAND_Y = [79.5, 83, 86.5];
+  const FLAG_BLUE = "#0039a6";
+  const FLAG_RED = "#d52b1e";
+  const BAND_WHITE = "#f4f2ea";
+
+  function huasoBrim(brim, brimShade) {
+    return [
+      hatEl("ellipse", { cx: 50, cy: 95, rx: 49, ry: 12.5, fill: brimShade }),
+      hatEl("ellipse", { cx: 50, cy: 91, rx: 49, ry: 12.5, fill: brim }),
+    ];
+  }
+
+  function huasoCrown(crown, crownTop, crease) {
+    return [
+      hatEl("path", { d: HUASO_CROWN, fill: crown }),
+      hatEl("ellipse", { cx: 50, cy: 56, rx: 23, ry: 6.5, fill: crownTop }),
+      hatEl("ellipse", { cx: 50, cy: 57.6, rx: 14, ry: 3.8, fill: crease }),
+    ];
+  }
+
+  function huasoBand() {
+    const band = hatEl("g", { fill: "none", "stroke-width": 3.6 });
+    const colors = [FLAG_BLUE, BAND_WHITE, FLAG_RED];
+    HUASO_BAND_Y.forEach((y, index) => {
+      band.appendChild(hatEl("path", { d: `M27 ${y} Q50 ${y + 7} 73 ${y}`, stroke: colors[index] }));
+    });
+    return band;
+  }
+
+  function chupalla() {
+    const brimWeave = hatEl("g", { fill: "none", stroke: "rgba(146,110,44,0.4)", "stroke-width": 1.5 });
+    for (const [rx, ry] of [[41, 10.4], [31, 7.8], [21, 5.2]]) {
+      brimWeave.appendChild(hatEl("ellipse", { cx: 50, cy: 91, rx, ry }));
+    }
+    const crownWeave = hatEl("g", { fill: "none", stroke: "rgba(146,110,44,0.34)", "stroke-width": 1.5 });
+    for (const y of [62, 68, 74]) {
+      crownWeave.appendChild(hatEl("path", { d: `M27.5 ${y} Q50 ${y + 6.5} 72.5 ${y}` }));
+    }
+    return appendAll(hatEl("g"), [
+      ...huasoBrim("#e6c877", "#b3903f"),
+      brimWeave,
+      ...huasoCrown("#dcbc69", "#efd694", "#d3b25e"),
+      crownWeave,
+      hatEl("path", { d: HUASO_SHEEN, fill: "rgba(255,255,255,0.2)" }),
+      huasoBand(),
+    ]);
+  }
+
+  function huasoHat() {
+    return appendAll(hatEl("g"), [
+      ...huasoBrim("#26262c", "#141419"),
+      // Felt takes a soft sheen where straw takes a weave.
+      hatEl("ellipse", { cx: 50, cy: 89, rx: 40, ry: 9.5, fill: "rgba(255,255,255,0.06)" }),
+      ...huasoCrown("#26262c", "#34343d", "#1c1c22"),
+      hatEl("path", { d: HUASO_SHEEN, fill: "rgba(255,255,255,0.1)" }),
+      huasoBand(),
+    ]);
+  }
+
   // --- Accessories -------------------------------------------------------------
   // Worn on the ball itself rather than on top of it. Drawn in a 100x50 box.
   function bowtie() {
@@ -176,10 +240,54 @@
     ]);
   }
 
+
+  // Manta de huaso: a square blanket in plain stripes. The one with woven designs
+  // is a chamanto — finer, reversible, a different garment.
+  const MANTA_SHAPE = "M12 4 L88 4 L97 62 Q50 72 3 62 Z";
+  const MANTA_STRIPES = [
+    [16, 3, "#efe9dc"],
+    [19, 10, "#c62828"],
+    [29, 3, "#efe9dc"],
+    [42, 3, "#efe9dc"],
+    [45, 10, "#c62828"],
+    [55, 3, "#efe9dc"],
+  ];
+
+  function manta() {
+    const clipId = `rockyMantaCloth${(hatInstances += 1)}`;
+    const clip = hatEl("clipPath", { id: clipId });
+    clip.appendChild(hatEl("path", { d: MANTA_SHAPE }));
+
+    const stripes = hatEl("g", { "clip-path": `url(#${clipId})` });
+    for (const [y, height, fill] of MANTA_STRIPES) {
+      stripes.appendChild(hatEl("rect", { x: 0, y, width: 100, height, fill }));
+    }
+
+    // The hem dips in the middle, so each strand has to start on the curve.
+    const fringe = hatEl("g", { stroke: "#efe9dc", "stroke-width": 1.8, "stroke-linecap": "round" });
+    for (let strand = 0; strand < 11; strand++) {
+      const x = 8 + strand * 8.4;
+      const hem = 62 + 10 * (1 - ((x - 50) / 47) ** 2);
+      fringe.appendChild(
+        hatEl("path", { d: `M${x.toFixed(1)} ${hem.toFixed(1)} L${(x + 0.8).toFixed(1)} ${(hem + 8).toFixed(1)}` }),
+      );
+    }
+
+    return appendAll(hatEl("g"), [
+      clip,
+      fringe,
+      hatEl("path", { d: MANTA_SHAPE, fill: "#1c1c22" }),
+      stripes,
+      hatEl("path", { d: "M74 4 L88 4 L97 62 Q86 66 76 67 Z", fill: "rgba(0,0,0,0.22)" }),
+    ]);
+  }
+
   // bottomRatio — where the accessory sits above the ball's resting point, as a
-  // fraction of the diameter. Kept low so it reads as a collar under Rocky.
+  // fraction of the diameter.
   const ACCESSORIES = {
     tophat: { build: bowtie, aspect: 0.5, widthRatio: 0.3, bottomRatio: 0.26 },
+    chupalla: { build: manta, aspect: 0.82, widthRatio: 0.58, bottomRatio: 0.17 },
+    huaso: { build: manta, aspect: 0.82, widthRatio: 0.58, bottomRatio: 0.17 },
   };
 
   // widthRatio  — hat width as a fraction of the ball's diameter.
@@ -194,9 +302,15 @@
     paper: { build: paperHat, widthRatio: 0.62, brimRatio: 0.4 },
     // The bill is cantilevered out past the crown, so the seat is the crown only.
     cap: { build: cap, widthRatio: 0.58, brimRatio: 0.33 },
+    // Both dieciocho hats are mostly brim, and the brim is what rests on the sphere.
+    chupalla: { build: chupalla, widthRatio: 0.64, brimRatio: 0.49, fiesta: true },
+    huaso: { build: huasoHat, widthRatio: 0.64, brimRatio: 0.49, fiesta: true },
   };
 
   const HAT_NAMES = Object.keys(HATS);
+  // Split out so the dieciocho calendar in pet.js can swap one pool for the other.
+  const FIESTA_HAT_NAMES = HAT_NAMES.filter((name) => HATS[name].fiesta);
+  const EVERYDAY_HAT_NAMES = HAT_NAMES.filter((name) => !HATS[name].fiesta);
 
   // Build a hat sized for a ball of `diameter`, as its own layer. It gets a layer
   // rather than a slot inside the ball SVG because it stands a half-diameter above
@@ -247,5 +361,5 @@
     return svg;
   }
 
-  window.RockyHats = { HAT_NAMES, createHat, createAccessory };
+  window.RockyHats = { HAT_NAMES, EVERYDAY_HAT_NAMES, FIESTA_HAT_NAMES, createHat, createAccessory };
 })();

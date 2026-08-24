@@ -32,6 +32,8 @@ const BUBBLE_TEXT = {
   done: "Rocky done!",
   ballOn: "Rocky in ball!",
   ballOff: "Rocky free!",
+  dieciochoOn: "VIVA CHILE, statement!",
+  dieciochoOff: "fiesta over. Sad,",
 };
 const BUBBLE_MS = 1500;
 // Room kept above Rocky for the tallest bubble a message can wrap to. Reserved
@@ -390,9 +392,25 @@ function handleAction(action, arg) {
       setBall(!ballOn);
       showBubble(ballOn ? BUBBLE_TEXT.ballOn : BUBBLE_TEXT.ballOff);
       break;
-    case "hat":
+    case "hat": {
       if (!ballOn) setBall(true);
-      wearHat(arg || pickAnotherHat());
+      const named = window.RockyHats.HAT_NAMES.includes(arg) ? arg : null;
+      wearOutfit(named || pickFrom(hatPool(), hatName), propName);
+      break;
+    }
+    case "prop": {
+      if (!ballOn) setBall(true);
+      const props = window.RockyProps.PROP_NAMES;
+      const named = props.includes(arg) ? arg : null;
+      wearOutfit(hatName, named || pickFrom(props, propName));
+      break;
+    }
+    case "dieciocho":
+      dieciochoForced = !dieciochoForced;
+      if (!ballOn) setBall(true);
+      enforcePool();
+      savePrefs();
+      showBubble(dieciochoForced ? BUBBLE_TEXT.dieciochoOn : BUBBLE_TEXT.dieciochoOff);
       break;
     case "idle":
       settleToBase();
@@ -566,10 +584,48 @@ let ball = null;
 let ballOn = true;
 let hatName = "tophat";
 let hatSince = Date.now(); // when the current hat went on, for the rotation clock
+let propName = null; // what Rocky carries beside the ball, or nothing at all
+let dieciochoForced = false; // `rocky dieciocho` — fiesta pool whatever the date
 let bodyLift = 0; // px Rocky floats above the baseline to sit inside the sphere
 let ballTopPx = 0; // tallest point of ball + hat, measured from Rocky's baseline
 let ballParts = [];
 let hatTimer = null;
+
+// --- The dieciocho calendar --------------------------------------------------
+// Read off the wall clock rather than scheduled, so a closed laptop lid can't
+// skip a phase — same reason the hat rotation and the nag watch poll.
+const WARMUP_MONTH = 7; // August (months are 0-indexed)
+const DIECIOCHO_MONTH = 8; // September
+const DIECIOCHO_OVER_DAY = 20; // the kit is put away on the 20th
+
+function dieciochoPhase(now = new Date()) {
+  if (dieciochoForced) return "only";
+  const month = now.getMonth();
+  if (month === DIECIOCHO_MONTH) return now.getDate() < DIECIOCHO_OVER_DAY ? "only" : "off";
+  return month === WARMUP_MONTH ? "warmup" : "off";
+}
+
+function hatPool() {
+  switch (dieciochoPhase()) {
+    case "only":
+      return window.RockyHats.FIESTA_HAT_NAMES;
+    case "warmup":
+      return window.RockyHats.HAT_NAMES;
+    default:
+      return window.RockyHats.EVERYDAY_HAT_NAMES;
+  }
+}
+
+// Every prop is a fiesta prop, so outside the dieciocho the slot is simply empty.
+function propPool() {
+  return dieciochoPhase() === "off" ? [] : window.RockyProps.PROP_NAMES;
+}
+
+function pickFrom(pool, current) {
+  const others = pool.filter((name) => name !== current);
+  const from = others.length ? others : pool;
+  return from.length ? from[Math.floor(Math.random() * from.length)] : null;
+}
 
 function clearBall() {
   for (const el of ballParts) el.remove();
@@ -624,6 +680,7 @@ function renderBall() {
   for (const worn of [
     window.RockyHats.createHat(hatName, { diameter: BALL_DIAMETER_PX }),
     window.RockyHats.createAccessory(hatName, { diameter: BALL_DIAMETER_PX }),
+    window.RockyProps.createProp(propName, { diameter: BALL_DIAMETER_PX }),
   ]) {
     if (worn) ballParts.push(worn);
   }
@@ -641,7 +698,7 @@ function rollBall(px) {
 }
 
 function savePrefs() {
-  window.rocky.savePrefs({ ballOn, hat: hatName, hatSince });
+  window.rocky.savePrefs({ ballOn, hat: hatName, hatSince, prop: propName, dieciocho: dieciochoForced });
 }
 
 function setBall(on) {
@@ -650,27 +707,41 @@ function setBall(on) {
   savePrefs();
 }
 
-function wearHat(name) {
-  if (!window.RockyHats.HAT_NAMES.includes(name)) return;
-  hatName = name;
+function wearOutfit(nextHat, nextProp) {
+  hatName = nextHat;
+  propName = nextProp;
   hatSince = Date.now();
   renderBall();
   savePrefs();
 }
 
-function pickAnotherHat() {
-  const others = window.RockyHats.HAT_NAMES.filter((name) => name !== hatName);
-  return others[Math.floor(Math.random() * others.length)];
+// Keyed on membership rather than on catching the date flip, so a restart lands
+// where a pet that stayed up would. Without it the 3h hat clock would leave Rocky
+// in a top hat for hours after midnight on the 1st.
+function enforcePool() {
+  const hats = hatPool();
+  const props = propPool();
+  const hatStale = !hats.includes(hatName);
+  const propStale = propName ? !props.includes(propName) : props.length > 0;
+  if (!hatStale && !propStale) return false;
+  wearOutfit(
+    hatStale ? pickFrom(hats, hatName) : hatName,
+    propStale ? pickFrom(props, propName) : propName,
+  );
+  return true;
 }
 
-function rotateHatIfDue() {
-  if (ballOn && Date.now() - hatSince >= HAT_ROTATE_MS) wearHat(pickAnotherHat());
+function rotateOutfitIfDue() {
+  if (!ballOn) return;
+  if (enforcePool()) return; // the calendar already dressed him
+  if (Date.now() - hatSince < HAT_ROTATE_MS) return;
+  wearOutfit(pickFrom(hatPool(), hatName), pickFrom(propPool(), propName));
 }
 
-function startHatRotation() {
+function startOutfitRotation() {
   clearInterval(hatTimer);
-  rotateHatIfDue(); // an overnight sleep may already have earned a new hat
-  hatTimer = setInterval(rotateHatIfDue, HAT_CHECK_MS);
+  rotateOutfitIfDue(); // an overnight sleep may already have earned a new hat
+  hatTimer = setInterval(rotateOutfitIfDue, HAT_CHECK_MS);
 }
 
 // --- Wandering ---------------------------------------------------------------
@@ -915,12 +986,14 @@ async function boot() {
   if (typeof prefs.ballOn === "boolean") ballOn = prefs.ballOn;
   if (window.RockyHats.HAT_NAMES.includes(prefs.hat)) hatName = prefs.hat;
   if (typeof prefs.hatSince === "number") hatSince = prefs.hatSince;
+  if (window.RockyProps.PROP_NAMES.includes(prefs.prop)) propName = prefs.prop;
+  if (typeof prefs.dieciocho === "boolean") dieciochoForced = prefs.dieciocho;
 
   paintFrozenFrame();
   showFrozen();
   await calibrate(); // measures Rocky's body, which the ball is sized against
   renderBall();
-  startHatRotation();
+  startOutfitRotation();
   scheduleWalk();
   startNagWatch();
 }

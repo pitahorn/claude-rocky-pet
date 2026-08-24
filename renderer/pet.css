@@ -200,7 +200,8 @@ body::before {
    not DOM order, so the layers can be appended in any order. --- */
 .ball-layer,
 .ball-hat,
-.ball-accessory {
+.ball-accessory,
+.ball-prop {
   position: absolute;
   left: 50%;
   pointer-events: none;
@@ -215,9 +216,31 @@ body::before {
 }
 
 .ball-hat,
-.ball-accessory {
+.ball-accessory,
+.ball-prop {
   z-index: 3;
   overflow: visible;
+}
+
+/* Cloth that catches the wind — flag, volantín, pañuelo. Each builder sets its
+   own transform-origin, so the pivot is the pole, the spine or the knot. */
+.prop-flutter {
+  transform-box: fill-box;
+  animation: rocky-flutter 2.1s ease-in-out infinite;
+}
+
+/* Uneven stops on purpose: a two-stop swing reads as a metronome, not as wind. */
+@keyframes rocky-flutter {
+  0%,
+  100% {
+    transform: rotate(-7deg) skewY(5deg) scaleX(0.93);
+  }
+  35% {
+    transform: rotate(4deg) skewY(-3deg) scaleX(1);
+  }
+  65% {
+    transform: rotate(8.5deg) skewY(-5deg) scaleX(0.96);
+  }
 }
 
 .hidden {

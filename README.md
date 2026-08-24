@@ -56,7 +56,7 @@ launchctl unload ~/Library/LaunchAgents/com.rocky-pet.plist   # disable
 ## Poke it
 
 ```sh
-bin/rocky jump|done|yay|dance|walk|nag|greet|idle|ball|hat [name]
+bin/rocky jump|done|yay|dance|walk|nag|greet|idle|ball|hat [name]|prop [name]|dieciocho
 ```
 
 The CLI writes `~/.rocky-pet/signal.json`; the app watches that file. Anything
@@ -123,8 +123,17 @@ address the owner by name — that name is yours to replace.
 in `GIF` / `NATIVE_SIZE` / `TRANSIENT_MS` / `ASSET_FILE`.
 
 **Drop the sphere.** `bin/rocky ball` toggles it at runtime; to remove it
-entirely, delete `renderer/ball.js` + `renderer/hats.js`, their `<script>` tags,
-and the `renderBall()` / `rollBall()` calls. Everything else is independent.
+entirely, delete `renderer/ball.js` + `renderer/hats.js` + `renderer/props.js`,
+their `<script>` tags, and the `renderBall()` / `rollBall()` calls. Everything
+else is independent.
+
+**Retime the fiesta.** Rocky wears a Chilean dieciocho kit — chupalla, sombrero
+de huaso, manta, and a prop beside the ball (flag, terremoto, empanada,
+volantín, sopaipillas, pañuelo de cueca). `dieciochoPhase()` in `pet.js` runs it
+off the wall clock: mixed into the normal pool through August, the only pool from
+September 1st, gone on the 20th. `rocky dieciocho` forces it on out of season,
+which is also how you see the props in March. Swap the whole thing for your own
+holiday by rewriting that one function and the `fiesta: true` flags in `HATS`.
 
 ## How it works
 
@@ -144,13 +153,14 @@ CLI / Claude hook ──writes──▶ ~/.rocky-pet/signal.json {action, ts}
 | `renderer/pet.js` | behaviour: poses, bubbles, drag, walk, nag, session pills |
 | `renderer/pet.css` | layout, the hop and the breathing |
 | `renderer/ball.js` | the geodesic sphere (`window.RockyBall`) |
-| `renderer/hats.js` | six hats and their accessories (`window.RockyHats`) |
+| `renderer/hats.js` | eight hats and their accessories (`window.RockyHats`) |
+| `renderer/props.js` | the fiesta-patrias props (`window.RockyProps`) |
 | `bin/rocky` | the CLI that writes the signal file |
 | `hooks/rocky-ping.sh` | Claude Code hook → CLI, plus tty/session detection |
 | `CLAUDE.md` | the pet's voice + house rules, for a coding agent working in here |
 
 State lives in `~/.rocky-pet/`: `signal.json` (the inbox), `position.json`
-(where you dragged it), `prefs.json` (ball + hat).
+(where you dragged it), `prefs.json` (ball, hat, prop, fiesta override).
 
 ## Invariants that will bite you
 

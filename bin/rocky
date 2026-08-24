@@ -9,7 +9,11 @@
 //   rocky nag    -> after-hours "go home" nag (5 bounces)
 //   rocky idle   -> settle back to still
 //   rocky ball   -> put Rocky in / take him out of his ball
-//   rocky hat [name] -> next hat, or a named one (tophat|party|beanie|hardhat|paper|cap)
+//   rocky hat [name] -> next hat, or a named one
+//                       (tophat|party|beanie|hardhat|paper|cap|chupalla|huaso)
+//   rocky prop [name] -> next dieciocho prop, or a named one
+//                       (bandera|terremoto|empanada|volantin|sopaipillas|panuelo)
+//   rocky dieciocho   -> force the fiesta-patrias kit on / off, whatever the date
 
 const fs = require("node:fs");
 const os = require("node:os");
@@ -30,6 +34,8 @@ const VALID = new Set([
   "permreq",
   "ball",
   "hat",
+  "prop",
+  "dieciocho",
 ]);
 
 const action = (process.argv[2] || "jump").toLowerCase();
