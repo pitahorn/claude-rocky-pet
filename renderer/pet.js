@@ -33,7 +33,8 @@ const BUBBLE_TEXT = {
   ballOn: "Rocky in ball!",
   ballOff: "Rocky free!",
   dieciochoOn: "VIVA CHILE, statement!",
-  dieciochoOff: "fiesta over. Sad,",
+  spookyOn: "BOO! Rocky scary, statement!",
+  seasonOff: "costume off. Sad,",
 };
 const BUBBLE_MS = 1500;
 // Room kept above Rocky for the tallest bubble a message can wrap to. Reserved
@@ -402,15 +403,17 @@ function handleAction(action, arg) {
       if (!ballOn) setBall(true);
       const props = window.RockyProps.PROP_NAMES;
       const named = props.includes(arg) ? arg : null;
-      wearOutfit(hatName, named || pickFrom(props, propName));
+      const inSeason = propPool();
+      wearOutfit(hatName, named || pickFrom(inSeason.length ? inSeason : props, propName));
       break;
     }
     case "dieciocho":
-      dieciochoForced = !dieciochoForced;
+    case "spooky":
+      forcedSeason = forcedSeason === action ? null : action;
       if (!ballOn) setBall(true);
       enforcePool();
       savePrefs();
-      showBubble(dieciochoForced ? BUBBLE_TEXT.dieciochoOn : BUBBLE_TEXT.dieciochoOff);
+      showBubble(forcedSeason ? BUBBLE_TEXT[`${forcedSeason}On`] : BUBBLE_TEXT.seasonOff);
       break;
     case "idle":
       settleToBase();
@@ -585,40 +588,44 @@ let ballOn = true;
 let hatName = "tophat";
 let hatSince = Date.now(); // when the current hat went on, for the rotation clock
 let propName = null; // what Rocky carries beside the ball, or nothing at all
-let dieciochoForced = false; // `rocky dieciocho` — fiesta pool whatever the date
+let forcedSeason = null; // `rocky dieciocho` / `rocky spooky` — that kit whatever the date
 let bodyLift = 0; // px Rocky floats above the baseline to sit inside the sphere
 let ballTopPx = 0; // tallest point of ball + hat, measured from Rocky's baseline
 let ballParts = [];
 let hatTimer = null;
 
-// --- The dieciocho calendar --------------------------------------------------
+// --- The seasonal calendar ---------------------------------------------------
 // Read off the wall clock rather than scheduled, so a closed laptop lid can't
 // skip a phase — same reason the hat rotation and the nag watch poll.
-const WARMUP_MONTH = 7; // August (months are 0-indexed)
-const DIECIOCHO_MONTH = 8; // September
-const DIECIOCHO_OVER_DAY = 20; // the kit is put away on the 20th
+// "warmup" mixes the kit into the everyday hats; "only" wears nothing else.
+const AUGUST = 7; // months are 0-indexed
+const SEPTEMBER = 8;
+const OCTOBER = 9;
+const DIECIOCHO_OVER_DAY = 20; // the fiesta kit is put away on the 20th
+const SPOOKY_ONLY_DAY = 25; // the last week of October is costumes only
 
-function dieciochoPhase(now = new Date()) {
-  if (dieciochoForced) return "only";
+function seasonNow(now = new Date()) {
+  if (forcedSeason) return { season: forcedSeason, phase: "only" };
   const month = now.getMonth();
-  if (month === DIECIOCHO_MONTH) return now.getDate() < DIECIOCHO_OVER_DAY ? "only" : "off";
-  return month === WARMUP_MONTH ? "warmup" : "off";
+  const day = now.getDate();
+  if (month === AUGUST) return { season: "dieciocho", phase: "warmup" };
+  if (month === SEPTEMBER && day < DIECIOCHO_OVER_DAY) return { season: "dieciocho", phase: "only" };
+  if (month === OCTOBER) return { season: "spooky", phase: day < SPOOKY_ONLY_DAY ? "warmup" : "only" };
+  return null;
 }
 
 function hatPool() {
-  switch (dieciochoPhase()) {
-    case "only":
-      return window.RockyHats.FIESTA_HAT_NAMES;
-    case "warmup":
-      return window.RockyHats.HAT_NAMES;
-    default:
-      return window.RockyHats.EVERYDAY_HAT_NAMES;
-  }
+  const everyday = window.RockyHats.hatsFor();
+  const now = seasonNow();
+  if (!now) return everyday;
+  const seasonal = window.RockyHats.hatsFor(now.season);
+  return now.phase === "only" ? seasonal : [...everyday, ...seasonal];
 }
 
-// Every prop is a fiesta prop, so outside the dieciocho the slot is simply empty.
+// Every prop belongs to a season, so out of season the slot is simply empty.
 function propPool() {
-  return dieciochoPhase() === "off" ? [] : window.RockyProps.PROP_NAMES;
+  const now = seasonNow();
+  return now ? window.RockyProps.propsFor(now.season) : [];
 }
 
 function pickFrom(pool, current) {
@@ -698,7 +705,7 @@ function rollBall(px) {
 }
 
 function savePrefs() {
-  window.rocky.savePrefs({ ballOn, hat: hatName, hatSince, prop: propName, dieciocho: dieciochoForced });
+  window.rocky.savePrefs({ ballOn, hat: hatName, hatSince, prop: propName, season: forcedSeason });
 }
 
 function setBall(on) {
@@ -987,7 +994,7 @@ async function boot() {
   if (window.RockyHats.HAT_NAMES.includes(prefs.hat)) hatName = prefs.hat;
   if (typeof prefs.hatSince === "number") hatSince = prefs.hatSince;
   if (window.RockyProps.PROP_NAMES.includes(prefs.prop)) propName = prefs.prop;
-  if (typeof prefs.dieciocho === "boolean") dieciochoForced = prefs.dieciocho;
+  if (["dieciocho", "spooky"].includes(prefs.season)) forcedSeason = prefs.season;
 
   paintFrozenFrame();
   showFrozen();

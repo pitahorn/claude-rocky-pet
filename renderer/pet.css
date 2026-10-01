@@ -243,6 +243,80 @@ body::before {
   }
 }
 
+/* The spooky kit. Every loop keeps uneven stops, for the same reason as the flag. */
+.spooky-flicker {
+  animation: rocky-flicker 1.7s steps(1, end) infinite;
+}
+
+@keyframes rocky-flicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  22% {
+    opacity: 0.55;
+  }
+  30% {
+    opacity: 0.9;
+  }
+  64% {
+    opacity: 0.7;
+  }
+}
+
+.spooky-bob {
+  transform-box: fill-box;
+  animation: rocky-bob 2.6s ease-in-out infinite;
+}
+
+@keyframes rocky-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-9%);
+  }
+  70% {
+    transform: translateY(-4%);
+  }
+}
+
+.spooky-wobble {
+  animation: rocky-wobble 1.9s ease-in-out infinite;
+}
+
+@keyframes rocky-wobble {
+  0%,
+  100% {
+    transform: rotate(-8.5deg);
+  }
+  35% {
+    transform: rotate(6deg);
+  }
+  60% {
+    transform: rotate(-3deg);
+  }
+  80% {
+    transform: rotate(8.5deg);
+  }
+}
+
+.spooky-flap {
+  transform-box: fill-box;
+  animation: rocky-flap 0.42s ease-in-out infinite;
+}
+
+@keyframes rocky-flap {
+  0%,
+  100% {
+    transform: rotate(0deg) scaleY(1);
+  }
+  50% {
+    transform: rotate(-22deg) scaleY(0.55);
+  }
+}
+
 .hidden {
   display: none;
 }

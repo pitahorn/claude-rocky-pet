@@ -228,6 +228,152 @@
     ]);
   }
 
+  // --- The spooky kit ----------------------------------------------------------
+  // Every spooky hat that hugs the sphere follows this arc: the seat line at
+  // y=100 meets the surface at the edges, and the dome stands ~11 units proud.
+  const SPHERE_ARC = "M6 100 Q50 79 94 100";
+  const BANDAGE = "#efe8d6";
+  const BANDAGE_INK = "rgba(110,98,78,0.55)";
+  const ALIEN_GREEN = "#7be36b";
+
+  function witchHat() {
+    return appendAll(hatEl("g"), [
+      hatEl("ellipse", { cx: 50, cy: 94, rx: 49, ry: 9, fill: "#1d1426" }),
+      hatEl("ellipse", { cx: 50, cy: 91, rx: 49, ry: 9, fill: "#2c1f3a" }),
+      // Cone with the tip folded over to the right, the way a worn one sags.
+      hatEl("path", { d: "M28 90 L44 34 Q50 14 66 10 Q80 8 84 18 Q72 16 64 26 L72 90 Q50 96 28 90 Z", fill: "#2c1f3a" }),
+      hatEl("path", { d: "M33 88 L46 36 Q49 26 55 20 L44 88 Z", fill: "rgba(255,255,255,0.08)" }),
+      hatEl("path", { d: "M30 80 Q50 86 70 80 L72 90 Q50 96 28 90 Z", fill: "#8e44c9" }),
+      hatEl("rect", { x: 44, y: 79, width: 12, height: 11, rx: 1.5, fill: "none", stroke: "#f2c94c", "stroke-width": 2.4 }),
+    ]);
+  }
+
+  function pumpkinHead() {
+    const ribs = hatEl("g", { fill: "none", stroke: "#c9640c", "stroke-width": 2.2 });
+    for (const d of ["M50 44 Q38 70 40 98", "M50 44 Q62 70 60 98", "M50 44 Q24 64 22 96", "M50 44 Q76 64 78 96"]) {
+      ribs.appendChild(hatEl("path", { d }));
+    }
+    // The carved face glows from inside, so it gets the flicker the lantern prop has.
+    const face = appendAll(hatEl("g", { class: "spooky-flicker", fill: "#ffd23f" }), [
+      hatEl("path", { d: "M31 72 L39 62 L43 74 Z" }),
+      hatEl("path", { d: "M69 72 L61 62 L57 74 Z" }),
+      hatEl("path", { d: "M30 82 Q50 94 70 82 L66 88 L60 85 L55 91 L50 87 L45 91 L40 85 L34 88 Z" }),
+    ]);
+    return appendAll(hatEl("g"), [
+      hatEl("path", { d: "M8 100 Q4 46 50 44 Q96 46 92 100 Q50 106 8 100 Z", fill: "#f28a1d" }),
+      ribs,
+      hatEl("path", { d: "M16 66 Q24 50 40 46 Q26 58 22 84 Z", fill: "rgba(255,255,255,0.22)" }),
+      face,
+      hatEl("path", { d: "M47 46 Q46 36 52 30 L56 33 Q51 38 53 46 Z", fill: "#6b8e3a" }),
+      hatEl("path", { d: "M54 36 Q64 28 72 34 Q62 40 54 36 Z", fill: "#8db84a" }),
+    ]);
+  }
+
+  function horn(flip) {
+    return hatEl("path", {
+      d: "M30 92 Q22 70 30 52 Q34 70 42 90 Z",
+      fill: "#d7263d",
+      stroke: "#8f1123",
+      "stroke-width": 2,
+      "stroke-linejoin": "round",
+      transform: flip ? "translate(100 0) scale(-1 1)" : "",
+    });
+  }
+
+  function devilHorns() {
+    return appendAll(hatEl("g"), [
+      hatEl("path", { d: SPHERE_ARC, fill: "none", stroke: "#2a1a1f", "stroke-width": 4.5, "stroke-linecap": "round" }),
+      horn(false),
+      horn(true),
+      hatEl("path", { d: "M29 60 Q28 70 33 82", fill: "none", stroke: "rgba(255,255,255,0.35)", "stroke-width": 2, "stroke-linecap": "round" }),
+      hatEl("path", { d: "M71 60 Q72 70 67 82", fill: "none", stroke: "rgba(255,255,255,0.35)", "stroke-width": 2, "stroke-linecap": "round" }),
+    ]);
+  }
+
+  const MUMMY_DOME = "M8 100 Q8 54 50 54 Q92 54 92 100 Q50 106 8 100 Z";
+
+  function mummyWrap() {
+    const clipId = `rockyHatMummy${(hatInstances += 1)}`;
+    const clip = hatEl("clipPath", { id: clipId });
+    clip.appendChild(hatEl("path", { d: MUMMY_DOME }));
+    const strips = hatEl("g", { "clip-path": `url(#${clipId})`, fill: "none", stroke: BANDAGE_INK, "stroke-width": 1.8 });
+    for (const [y, tilt] of [[62, 8], [72, -6], [82, 7], [92, -5]]) {
+      strips.appendChild(hatEl("path", { d: `M0 ${y + tilt} Q50 ${y - 6} 100 ${y - tilt}` }));
+    }
+    // The loose end is cloth, so it swings on the same wind as the flag.
+    const tail = hatEl("path", {
+      class: "prop-flutter",
+      style: "transform-origin: left top",
+      d: "M84 70 Q98 74 100 90 L93 92 Q91 80 82 78 Z",
+      fill: BANDAGE,
+      stroke: BANDAGE_INK,
+      "stroke-width": 1.6,
+    });
+    return appendAll(hatEl("g"), [
+      clip,
+      tail,
+      hatEl("path", { d: MUMMY_DOME, fill: BANDAGE, stroke: BANDAGE_INK, "stroke-width": 2 }),
+      strips,
+    ]);
+  }
+
+  // A sheet thrown over the top of the ball. The grey hem keeps the white from
+  // reading as a blank blob on pale wallpaper.
+  function ghostSheet() {
+    const d = `M4 100 C4 46 22 38 50 38 C78 38 96 46 96 100${" q-7.667 6 -15.333 0".repeat(6)}`;
+    return appendAll(hatEl("g"), [
+      hatEl("path", {
+        d: `${d} Z`,
+        fill: "#fbfbf8",
+        stroke: "rgba(104,104,118,0.55)",
+        "stroke-width": 2.2,
+        "stroke-linejoin": "round",
+      }),
+      hatEl("path", { d: "M16 70 Q22 48 40 42 Q26 56 24 88 Z", fill: "rgba(0,0,0,0.05)" }),
+      hatEl("ellipse", { cx: 39, cy: 70, rx: 6, ry: 9, fill: "#1b1b22" }),
+      hatEl("ellipse", { cx: 61, cy: 70, rx: 6, ry: 9, fill: "#1b1b22" }),
+    ]);
+  }
+
+  function frankensteinTop() {
+    return appendAll(hatEl("g"), [
+      hatEl("path", { d: "M20 100 L22 58 L78 58 L80 100 Q50 106 20 100 Z", fill: "#86b86a" }),
+      hatEl("path", { d: "M24 98 L26 60 L36 60 L32 99 Z", fill: "rgba(255,255,255,0.14)" }),
+      // The flat-top: a slab of hair with a ragged fringe over the brow.
+      hatEl("path", {
+        d: "M17 40 L83 40 L83 66 L76 72 L70 66 L62 73 L55 66 L47 73 L40 66 L32 72 L25 66 L17 70 Z",
+        fill: "#1e1e22",
+      }),
+      hatEl("rect", { x: 17, y: 40, width: 66, height: 5, fill: "rgba(255,255,255,0.12)" }),
+      hatEl("path", { d: "M30 86 L70 84", fill: "none", stroke: "#2f4a24", "stroke-width": 2.2 }),
+      appendAll(hatEl("g", { stroke: "#2f4a24", "stroke-width": 2, "stroke-linecap": "round" }), [
+        hatEl("path", { d: "M36 81 L37 89" }),
+        hatEl("path", { d: "M46 80 L47 89" }),
+        hatEl("path", { d: "M56 80 L57 88" }),
+        hatEl("path", { d: "M66 79 L67 88" }),
+      ]),
+    ]);
+  }
+
+  // Not an Eridian costume. What Earth movies think an alien looks like.
+  function antenna(x, lean) {
+    const tipX = x + lean;
+    return appendAll(hatEl("g", { class: "spooky-wobble", style: `transform-origin: ${x}px 92px` }), [
+      hatEl("path", { d: `M${x} 92 Q${x + lean / 3} 70 ${tipX} 52`, fill: "none", stroke: "#2c7a2c", "stroke-width": 3.2, "stroke-linecap": "round" }),
+      hatEl("circle", { cx: tipX, cy: 48, r: 7, fill: ALIEN_GREEN, stroke: "#2c7a2c", "stroke-width": 2 }),
+      hatEl("circle", { cx: tipX - 2.4, cy: 45.6, r: 2.4, fill: "rgba(255,255,255,0.75)" }),
+    ]);
+  }
+
+  function alienBand() {
+    return appendAll(hatEl("g"), [
+      antenna(36, -12),
+      antenna(64, 12),
+      hatEl("path", { d: SPHERE_ARC, fill: "none", stroke: ALIEN_GREEN, "stroke-width": 6, "stroke-linecap": "round" }),
+      hatEl("path", { d: SPHERE_ARC, fill: "none", stroke: "#2c7a2c", "stroke-width": 1.4, transform: "translate(0 2.6)" }),
+    ]);
+  }
+
   // --- Accessories -------------------------------------------------------------
   // Worn on the ball itself rather than on top of it. Drawn in a 100x50 box.
   function bowtie() {
@@ -239,7 +385,6 @@
       hatEl("rect", { x: 44, y: 15, width: 5, height: 20, rx: 2.5, fill: "rgba(255,255,255,0.3)" }),
     ]);
   }
-
 
   // Manta de huaso: a square blanket in plain stripes. The one with woven designs
   // is a chamanto — finer, reversible, a different garment.
@@ -282,12 +427,40 @@
     ]);
   }
 
+  // Bolts poke out past both sides of the sphere, so this box is wider than it.
+  function bolt(flip) {
+    return appendAll(hatEl("g", { transform: flip ? "translate(100 0) scale(-1 1)" : "" }), [
+      hatEl("rect", { x: 4, y: 10, width: 12, height: 10, fill: "#8d939b", stroke: "#4c5157", "stroke-width": 1.6 }),
+      hatEl("rect", { x: 0, y: 6, width: 6, height: 18, rx: 1.5, fill: "#b3b9c0", stroke: "#4c5157", "stroke-width": 1.6 }),
+    ]);
+  }
+
+  function neckBolts() {
+    return appendAll(hatEl("g"), [bolt(false), bolt(true)]);
+  }
+
+  // The big black almond eyes from the movies — worn by an alien who has none.
+  function alienEyes() {
+    const eye = (flip) =>
+      appendAll(hatEl("g", { transform: flip ? "translate(100 0) scale(-1 1)" : "" }), [
+        hatEl("path", { d: "M47 12 Q30 2 10 8 Q8 22 22 30 Q40 32 47 12 Z", fill: "#111116", stroke: "#2c7a2c", "stroke-width": 2.2 }),
+        hatEl("ellipse", { cx: 22, cy: 13, rx: 5, ry: 3, fill: "rgba(255,255,255,0.7)", transform: "rotate(-15 22 13)" }),
+      ]);
+    return appendAll(hatEl("g"), [
+      hatEl("path", { d: "M8 12 Q50 22 92 12", fill: "none", stroke: ALIEN_GREEN, "stroke-width": 3 }),
+      eye(false),
+      eye(true),
+    ]);
+  }
+
   // bottomRatio — where the accessory sits above the ball's resting point, as a
   // fraction of the diameter.
   const ACCESSORIES = {
     tophat: { build: bowtie, aspect: 0.5, widthRatio: 0.3, bottomRatio: 0.26 },
     chupalla: { build: manta, aspect: 0.82, widthRatio: 0.58, bottomRatio: 0.17 },
     huaso: { build: manta, aspect: 0.82, widthRatio: 0.58, bottomRatio: 0.17 },
+    frankenstein: { build: neckBolts, aspect: 0.3, widthRatio: 1.1, bottomRatio: 0.24 },
+    alien: { build: alienEyes, aspect: 0.34, widthRatio: 0.56, bottomRatio: 0.44 },
   };
 
   // widthRatio  — hat width as a fraction of the ball's diameter.
@@ -303,14 +476,23 @@
     // The bill is cantilevered out past the crown, so the seat is the crown only.
     cap: { build: cap, widthRatio: 0.58, brimRatio: 0.33 },
     // Both dieciocho hats are mostly brim, and the brim is what rests on the sphere.
-    chupalla: { build: chupalla, widthRatio: 0.64, brimRatio: 0.49, fiesta: true },
-    huaso: { build: huasoHat, widthRatio: 0.64, brimRatio: 0.49, fiesta: true },
+    chupalla: { build: chupalla, widthRatio: 0.64, brimRatio: 0.49, season: "dieciocho" },
+    huaso: { build: huasoHat, widthRatio: 0.64, brimRatio: 0.49, season: "dieciocho" },
+    witch: { build: witchHat, widthRatio: 0.62, brimRatio: 0.49, season: "spooky" },
+    pumpkin: { build: pumpkinHead, widthRatio: 0.56, brimRatio: 0.44, season: "spooky" },
+    horns: { build: devilHorns, widthRatio: 0.5, brimRatio: 0.44, season: "spooky" },
+    mummy: { build: mummyWrap, widthRatio: 0.58, brimRatio: 0.42, season: "spooky" },
+    ghost: { build: ghostSheet, widthRatio: 0.66, brimRatio: 0.46, season: "spooky" },
+    frankenstein: { build: frankensteinTop, widthRatio: 0.5, brimRatio: 0.3, season: "spooky" },
+    alien: { build: alienBand, widthRatio: 0.5, brimRatio: 0.44, season: "spooky" },
   };
 
   const HAT_NAMES = Object.keys(HATS);
-  // Split out so the dieciocho calendar in pet.js can swap one pool for the other.
-  const FIESTA_HAT_NAMES = HAT_NAMES.filter((name) => HATS[name].fiesta);
-  const EVERYDAY_HAT_NAMES = HAT_NAMES.filter((name) => !HATS[name].fiesta);
+
+  // Pass no season for the everyday hats. Lets the calendar in pet.js swap pools.
+  function hatsFor(season) {
+    return HAT_NAMES.filter((name) => HATS[name].season === season);
+  }
 
   // Build a hat sized for a ball of `diameter`, as its own layer. It gets a layer
   // rather than a slot inside the ball SVG because it stands a half-diameter above
@@ -361,5 +543,5 @@
     return svg;
   }
 
-  window.RockyHats = { HAT_NAMES, EVERYDAY_HAT_NAMES, FIESTA_HAT_NAMES, createHat, createAccessory };
+  window.RockyHats = { HAT_NAMES, hatsFor, createHat, createAccessory };
 })();

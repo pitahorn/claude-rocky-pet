@@ -56,7 +56,7 @@ launchctl unload ~/Library/LaunchAgents/com.rocky-pet.plist   # disable
 ## Poke it
 
 ```sh
-bin/rocky jump|done|yay|dance|walk|nag|greet|idle|ball|hat [name]|prop [name]|dieciocho
+bin/rocky jump|done|yay|dance|walk|nag|greet|idle|ball|hat [name]|prop [name]|dieciocho|spooky
 ```
 
 The CLI writes `~/.rocky-pet/signal.json`; the app watches that file. Anything
@@ -127,13 +127,17 @@ entirely, delete `renderer/ball.js` + `renderer/hats.js` + `renderer/props.js`,
 their `<script>` tags, and the `renderBall()` / `rollBall()` calls. Everything
 else is independent.
 
-**Retime the fiesta.** Rocky wears a Chilean dieciocho kit — chupalla, sombrero
-de huaso, manta, and a prop beside the ball (flag, terremoto, empanada,
-volantín, sopaipillas, pañuelo de cueca). `dieciochoPhase()` in `pet.js` runs it
-off the wall clock: mixed into the normal pool through August, the only pool from
-September 1st, gone on the 20th. `rocky dieciocho` forces it on out of season,
-which is also how you see the props in March. Swap the whole thing for your own
-holiday by rewriting that one function and the `fiesta: true` flags in `HATS`.
+**Retime the seasons.** Rocky dresses up twice a year. The Chilean dieciocho kit
+— chupalla, sombrero de huaso, manta, and a prop beside the ball (flag,
+terremoto, empanada, volantín, sopaipillas, pañuelo de cueca) — mixes into the
+normal pool through August, is the only pool from September 1st, and is gone on
+the 20th. The spooky kit — witch, pumpkin, horns, mummy, ghost, Frankenstein and
+alien hats, plus a jack-o'-lantern, ghost, bat or candy bucket — mixes in through
+October, is costumes only from the 25th, and is gone on November 1st.
+`seasonNow()` in `pet.js` reads both off the wall clock. `rocky dieciocho` /
+`rocky spooky` force a kit on whatever the date, and that sticks in prefs until
+toggled off. Add your own holiday with a branch in `seasonNow()` and a `season`
+tag on its entries in `HATS` and `PROPS`.
 
 ## How it works
 
@@ -153,14 +157,14 @@ CLI / Claude hook ──writes──▶ ~/.rocky-pet/signal.json {action, ts}
 | `renderer/pet.js` | behaviour: poses, bubbles, drag, walk, nag, session pills |
 | `renderer/pet.css` | layout, the hop and the breathing |
 | `renderer/ball.js` | the geodesic sphere (`window.RockyBall`) |
-| `renderer/hats.js` | eight hats and their accessories (`window.RockyHats`) |
-| `renderer/props.js` | the fiesta-patrias props (`window.RockyProps`) |
+| `renderer/hats.js` | fifteen hats and their accessories (`window.RockyHats`) |
+| `renderer/props.js` | the seasonal props (`window.RockyProps`) |
 | `bin/rocky` | the CLI that writes the signal file |
 | `hooks/rocky-ping.sh` | Claude Code hook → CLI, plus tty/session detection |
 | `CLAUDE.md` | the pet's voice + house rules, for a coding agent working in here |
 
 State lives in `~/.rocky-pet/`: `signal.json` (the inbox), `position.json`
-(where you dragged it), `prefs.json` (ball, hat, prop, fiesta override).
+(where you dragged it), `prefs.json` (ball, hat, prop, forced season).
 
 ## Invariants that will bite you
 
