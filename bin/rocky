@@ -11,12 +11,14 @@
 //   rocky ball   -> put Rocky in / take him out of his ball
 //   rocky hat [name] -> next hat, or a named one
 //                       (tophat|party|beanie|hardhat|paper|cap|chupalla|huaso|
-//                        witch|pumpkin|horns|mummy|ghost|frankenstein|alien)
+//                        witch|pumpkin|horns|mummy|ghost|frankenstein|alien|
+//                        santa|elf|snowman|rudolph|tree)
 //   rocky prop [name] -> next prop in season, or a named one
 //                       (bandera|terremoto|empanada|volantin|sopaipillas|panuelo|
-//                        lantern|ghost|bat|bucket)
+//                        lantern|ghost|bat|bucket|gift|candycane|cocoa)
 //   rocky dieciocho   -> force the fiesta-patrias kit on / off, whatever the date
 //   rocky spooky      -> force the Halloween kit on / off, whatever the date
+//   rocky christmas   -> force the Christmas kit on / off, whatever the date
 
 const fs = require("node:fs");
 const os = require("node:os");
@@ -40,6 +42,7 @@ const VALID = new Set([
   "prop",
   "dieciocho",
   "spooky",
+  "christmas",
 ]);
 
 const action = (process.argv[2] || "jump").toLowerCase();

@@ -56,7 +56,7 @@ launchctl unload ~/Library/LaunchAgents/com.rocky-pet.plist   # disable
 ## Poke it
 
 ```sh
-bin/rocky jump|done|yay|dance|walk|nag|greet|idle|ball|hat [name]|prop [name]|dieciocho|spooky
+bin/rocky jump|done|yay|dance|walk|nag|greet|idle|ball|hat [name]|prop [name]|dieciocho|spooky|christmas
 ```
 
 The CLI writes `~/.rocky-pet/signal.json`; the app watches that file. Anything
@@ -127,15 +127,19 @@ entirely, delete `renderer/ball.js` + `renderer/hats.js` + `renderer/props.js`,
 their `<script>` tags, and the `renderBall()` / `rollBall()` calls. Everything
 else is independent.
 
-**Retime the seasons.** Rocky dresses up twice a year. The Chilean dieciocho kit
+**Retime the seasons.** Rocky dresses up three times a year. The Chilean dieciocho kit
 — chupalla, sombrero de huaso, manta, and a prop beside the ball (flag,
 terremoto, empanada, volantín, sopaipillas, pañuelo de cueca) — mixes into the
 normal pool through August, is the only pool from September 1st, and is gone on
 the 20th. The spooky kit — witch, pumpkin, horns, mummy, ghost, Frankenstein and
 alien hats, plus a jack-o'-lantern, ghost, bat or candy bucket — mixes in through
-October, is costumes only from the 25th, and is gone on November 1st.
-`seasonNow()` in `pet.js` reads both off the wall clock. `rocky dieciocho` /
-`rocky spooky` force a kit on whatever the date, and that sticks in prefs until
+October, is costumes only from the 25th, and is gone on November 1st. The
+christmas kit — Santa (with beard), elf, snowman, Rudolph and a lit-up tree, plus
+a gift, candy cane or cocoa — mixes in from November 10th, is the only pool all
+December, and is gone on January 1st. While it is on, a warm glow, falling snow
+and sparkles surround the ball (`createAura()` in `props.js`).
+`seasonNow()` in `pet.js` reads them off the wall clock. `rocky dieciocho` /
+`rocky spooky` / `rocky christmas` force a kit on whatever the date, and that sticks in prefs until
 toggled off. Add your own holiday with a branch in `seasonNow()` and a `season`
 tag on its entries in `HATS` and `PROPS`.
 

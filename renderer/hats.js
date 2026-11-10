@@ -374,6 +374,197 @@
     ]);
   }
 
+  // --- The christmas kit -------------------------------------------------------
+  const SANTA_RED = "#d42a2a";
+  const FUR = "#fbfbf8";
+  const FUR_INK = "rgba(104,104,118,0.5)";
+  const GOLD = "#f2c94c";
+  const BULB_COLORS = ["#ff4d4d", "#ffd23f", "#4ade80", "#5aa9ff"];
+
+  // Fur is a cluster of puffs: outlined circles first, then the same circles
+  // unstroked on top, so only the outer edge keeps the grey line.
+  function fur(puffs) {
+    return [
+      ...puffs.map(([cx, cy, r]) => hatEl("circle", { cx, cy, r, fill: FUR, stroke: FUR_INK, "stroke-width": 2.4 })),
+      ...puffs.map(([cx, cy, r]) => hatEl("circle", { cx, cy, r, fill: FUR })),
+    ];
+  }
+
+  // The trim follows the sphere's curve, low enough to sit on it, not float.
+  const SANTA_TRIM = [];
+  for (let x = 8; x <= 92; x += 7) SANTA_TRIM.push([x, 90 + 9 * ((x - 50) / 42) ** 2, 8]);
+
+  // Slouchy: wide at the seat, the tip flopped over and hanging down the right side.
+  function santaHat() {
+    return appendAll(hatEl("g"), [
+      hatEl("path", { d: "M10 92 Q12 46 44 28 Q72 12 88 32 Q96 46 92 72 Q86 52 76 48 Q84 68 90 92 Z", fill: SANTA_RED }),
+      hatEl("path", { d: "M20 88 Q22 54 46 34 Q32 56 32 88 Z", fill: "rgba(255,255,255,0.14)" }),
+      hatEl("path", { d: "M76 48 Q84 68 90 92 L78 92 Q74 66 68 52 Z", fill: "rgba(0,0,0,0.16)" }),
+      ...fur(SANTA_TRIM),
+      ...fur([[92, 76, 8], [87, 81, 6], [97, 81, 6], [92, 84, 6]]),
+    ]);
+  }
+
+  function elfHat() {
+    const zigzag = hatEl("g", { fill: FUR });
+    for (let x = 18; x < 82; x += 8) {
+      zigzag.appendChild(hatEl("path", { d: `M${x} ${86 + (x - 50) ** 2 / 300} l4 6 l4 -6 Z` }));
+    }
+    return appendAll(hatEl("g"), [
+      hatEl("path", { d: "M20 94 L46 24 Q52 8 68 6 Q82 6 84 18 Q72 14 63 22 L80 94 Q50 100 20 94 Z", fill: "#2f9e44" }),
+      hatEl("path", { d: "M27 90 L47 30 Q50 22 55 18 L40 90 Z", fill: "rgba(255,255,255,0.14)" }),
+      hatEl("path", { d: "M16 86 Q50 96 84 86 L86 98 Q50 106 14 98 Z", fill: SANTA_RED }),
+      zigzag,
+      appendAll(hatEl("g", { class: "spooky-wobble", style: "transform-origin: 84px 18px" }), [
+        hatEl("circle", { cx: 85, cy: 25, r: 6.5, fill: GOLD, stroke: "#b8902a", "stroke-width": 1.6 }),
+        hatEl("circle", { cx: 85, cy: 28.5, r: 1.6, fill: "#7a5d14" }),
+      ]),
+    ]);
+  }
+
+  // The top hat, dressed for a snowman: red band, holly sprig.
+  function snowmanHat() {
+    return appendAll(topHat(), [
+      hatEl("path", { d: "M21 82 Q50 90 79 82 L80 93 Q50 101 20 93 Z", fill: SANTA_RED }),
+      hatEl("path", { d: "M64 86 Q70 74 80 76 Q74 80 76 86 Q70 82 64 86 Z", fill: "#2f8a3a" }),
+      hatEl("path", { d: "M64 86 Q58 74 50 78 Q56 80 54 86 Q60 82 64 86 Z", fill: "#3fa24c" }),
+      hatEl("circle", { cx: 62, cy: 84, r: 3.2, fill: "#e0262f" }),
+      hatEl("circle", { cx: 66.5, cy: 85.5, r: 3.2, fill: "#e0262f" }),
+    ]);
+  }
+
+  function antler(flip) {
+    return hatEl("path", {
+      d: "M36 92 Q30 70 22 54 M27 64 Q16 62 10 52 M23 56 Q24 44 18 34 M30 76 Q38 66 40 56",
+      fill: "none",
+      stroke: "#8a5a2b",
+      "stroke-width": 5,
+      "stroke-linecap": "round",
+      transform: flip ? "translate(100 0) scale(-1 1)" : "",
+    });
+  }
+
+  function rudolphAntlers() {
+    return appendAll(hatEl("g"), [
+      antler(false),
+      antler(true),
+      hatEl("path", { d: SPHERE_ARC, fill: "none", stroke: "#5a3a1c", "stroke-width": 5, "stroke-linecap": "round" }),
+    ]);
+  }
+
+  // The tree's topper. Seated on a short stem so it stands clear of the lights.
+  function treeStar() {
+    return appendAll(hatEl("g"), [
+      hatEl("rect", { x: 46, y: 70, width: 8, height: 30, rx: 2, fill: "#b8902a" }),
+      appendAll(hatEl("g", { class: "xmas-twinkle", style: "transform-origin: 50px 46px" }), [
+        hatEl("path", {
+          d: "M50 8 L60 34 L88 35 L66 52 L74 80 L50 64 L26 80 L34 52 L12 35 L40 34 Z",
+          fill: GOLD,
+          stroke: "#b8902a",
+          "stroke-width": 2.4,
+          "stroke-linejoin": "round",
+        }),
+        hatEl("path", { d: "M50 8 L60 34 L50 46 Z", fill: "rgba(255,255,255,0.4)" }),
+      ]),
+    ]);
+  }
+
+  // Worn by the ball itself; the beard hides Rocky's legs, the way a costume should.
+  function beard() {
+    const curls = hatEl("g", { fill: "none", stroke: FUR_INK, "stroke-width": 1.6, "stroke-linecap": "round" });
+    for (const d of ["M24 30 q4 6 0 12", "M40 36 q4 6 0 12", "M58 36 q4 6 0 12", "M74 30 q4 6 0 12"]) {
+      curls.appendChild(hatEl("path", { d }));
+    }
+    return appendAll(hatEl("g"), [
+      hatEl("path", {
+        d: "M6 6 Q50 22 94 6 Q98 30 84 44 Q76 58 62 54 Q56 62 50 58 Q44 62 38 54 Q24 58 16 44 Q2 30 6 6 Z",
+        fill: FUR,
+        stroke: FUR_INK,
+        "stroke-width": 2,
+        "stroke-linejoin": "round",
+      }),
+      curls,
+      hatEl("path", { d: "M50 14 Q36 2 20 10 Q30 22 50 18 Q70 22 80 10 Q64 2 50 14 Z", fill: "#eeeee8", stroke: FUR_INK, "stroke-width": 1.6 }),
+    ]);
+  }
+
+  // Ball-sized accessories are drawn on the sphere's own circle: centre 50,50, r 50.
+  function snowmanFace() {
+    const scarfTail = hatEl("path", {
+      class: "prop-flutter",
+      style: "transform-origin: left top",
+      d: "M66 82 L80 84 L76 100 L64 98 Z",
+      fill: SANTA_RED,
+    });
+    return appendAll(hatEl("g"), [
+      hatEl("circle", { cx: 36, cy: 34, r: 4, fill: "#1b1b22" }),
+      hatEl("circle", { cx: 64, cy: 34, r: 4, fill: "#1b1b22" }),
+      hatEl("path", { d: "M48 44 L76 50 L48 52 Z", fill: "#f28a1d", stroke: "#c9640c", "stroke-width": 1.4, "stroke-linejoin": "round" }),
+      appendAll(hatEl("g", { fill: "#1b1b22" }), [30, 38, 46, 54, 62, 70].map((cx, i) =>
+        hatEl("circle", { cx, cy: 65 - Math.abs(i - 2.5) * 2, r: 2.2 }),
+      )),
+      scarfTail,
+      hatEl("path", { d: "M14 74 Q50 88 86 74 L84 84 Q50 98 16 84 Z", fill: SANTA_RED }),
+      hatEl("path", { d: "M20 78 Q50 90 80 78", fill: "none", stroke: "rgba(255,255,255,0.5)", "stroke-width": 2, "stroke-dasharray": "3 4" }),
+    ]);
+  }
+
+  function rudolphNose() {
+    return appendAll(hatEl("g"), [
+      hatEl("circle", { class: "xmas-pulse", cx: 50, cy: 50, r: 48, fill: "rgba(255,60,60,0.35)" }),
+      hatEl("circle", { cx: 50, cy: 50, r: 30, fill: "#e0262f", stroke: "#9e1018", "stroke-width": 3 }),
+      hatEl("circle", { cx: 41, cy: 40, r: 9, fill: "rgba(255,255,255,0.65)" }),
+    ]);
+  }
+
+  // A point on a quadratic curve — where each bulb and bauble hangs.
+  function onCurve([x0, y0, cx, cy, x1, y1], t) {
+    const u = 1 - t;
+    return [u * u * x0 + 2 * u * t * cx + t * t * x1, u * u * y0 + 2 * u * t * cy + t * t * y1];
+  }
+
+  const GARLANDS = [
+    [6, 34, 50, 58, 94, 34],
+    [8, 68, 50, 92, 92, 68],
+  ];
+
+  function bauble(x, y, color) {
+    return appendAll(hatEl("g"), [
+      hatEl("path", { d: `M${x} ${y} L${x} ${y + 5}`, stroke: "#b8902a", "stroke-width": 1 }),
+      hatEl("rect", { x: x - 2, y: y + 4, width: 4, height: 3, fill: "#b8902a" }),
+      hatEl("circle", { cx: x, cy: y + 12, r: 6, fill: color }),
+      hatEl("circle", { cx: x - 2, cy: y + 10, r: 1.8, fill: "rgba(255,255,255,0.7)" }),
+    ]);
+  }
+
+  function treeLights() {
+    const group = hatEl("g");
+    GARLANDS.forEach((curve, row) => {
+      const [x0, y0, cx, cy, x1, y1] = curve;
+      group.appendChild(hatEl("path", { d: `M${x0} ${y0} Q${cx} ${cy} ${x1} ${y1}`, fill: "none", stroke: "#1f5f2e", "stroke-width": 1.6 }));
+      for (let step = 1; step < 10; step++) {
+        const [x, y] = onCurve(curve, step / 10);
+        group.appendChild(hatEl("ellipse", {
+          class: "xmas-twinkle",
+          style: `transform-origin: ${x.toFixed(1)}px ${y.toFixed(1)}px; animation-delay: ${-((step * 0.37 + row * 0.6) % 1.4).toFixed(2)}s`,
+          cx: x.toFixed(1),
+          cy: (y + 2).toFixed(1),
+          rx: 2.2,
+          ry: 3.2,
+          fill: BULB_COLORS[(step + row) % BULB_COLORS.length],
+        }));
+      }
+    });
+    // Baubles hang from the top garland; the lower row is lifted to sit between the two.
+    for (const [row, t, color, lift] of [
+      [0, 0.25, "#e0262f", 0], [0, 0.55, GOLD, 0], [0, 0.85, "#5aa9ff", 0], [1, 0.4, "#4ade80", 20], [1, 0.7, "#e0262f", 20],
+    ]) {
+      const [x, y] = onCurve(GARLANDS[row], t);
+      group.appendChild(bauble(x, y - lift, color));
+    }
+    return group;
+  }
+
   // --- Accessories -------------------------------------------------------------
   // Worn on the ball itself rather than on top of it. Drawn in a 100x50 box.
   function bowtie() {
@@ -461,6 +652,10 @@
     huaso: { build: manta, aspect: 0.82, widthRatio: 0.58, bottomRatio: 0.17 },
     frankenstein: { build: neckBolts, aspect: 0.3, widthRatio: 1.1, bottomRatio: 0.24 },
     alien: { build: alienEyes, aspect: 0.34, widthRatio: 0.56, bottomRatio: 0.44 },
+    santa: { build: beard, aspect: 0.62, widthRatio: 0.62, bottomRatio: 0.06 },
+    snowman: { build: snowmanFace, aspect: 1, widthRatio: 1, bottomRatio: 0 },
+    rudolph: { build: rudolphNose, aspect: 1, widthRatio: 0.26, bottomRatio: 0.4 },
+    tree: { build: treeLights, aspect: 1, widthRatio: 1, bottomRatio: 0 },
   };
 
   // widthRatio  — hat width as a fraction of the ball's diameter.
@@ -485,6 +680,11 @@
     ghost: { build: ghostSheet, widthRatio: 0.66, brimRatio: 0.46, season: "spooky" },
     frankenstein: { build: frankensteinTop, widthRatio: 0.5, brimRatio: 0.3, season: "spooky" },
     alien: { build: alienBand, widthRatio: 0.5, brimRatio: 0.44, season: "spooky" },
+    santa: { build: santaHat, widthRatio: 0.62, brimRatio: 0.46, season: "christmas" },
+    elf: { build: elfHat, widthRatio: 0.52, brimRatio: 0.44, season: "christmas" },
+    snowman: { build: snowmanHat, widthRatio: 0.5, brimRatio: 0.48, season: "christmas" },
+    rudolph: { build: rudolphAntlers, widthRatio: 0.62, brimRatio: 0.44, season: "christmas" },
+    tree: { build: treeStar, widthRatio: 0.3, brimRatio: 0.06, season: "christmas" },
   };
 
   const HAT_NAMES = Object.keys(HATS);

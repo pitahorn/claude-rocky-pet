@@ -34,6 +34,7 @@ const BUBBLE_TEXT = {
   ballOff: "Rocky free!",
   dieciochoOn: "VIVA CHILE, statement!",
   spookyOn: "BOO! Rocky scary, statement!",
+  christmasOn: "HO HO HO! Rocky festive, statement!",
   seasonOff: "costume off. Sad,",
 };
 const BUBBLE_MS = 1500;
@@ -394,21 +395,28 @@ function handleAction(action, arg) {
       showBubble(ballOn ? BUBBLE_TEXT.ballOn : BUBBLE_TEXT.ballOff);
       break;
     case "hat": {
+      if (arg && !window.RockyHats.HAT_NAMES.includes(arg)) {
+        showBubble(`no hat "${arg}", question?`);
+        break;
+      }
       if (!ballOn) setBall(true);
-      const named = window.RockyHats.HAT_NAMES.includes(arg) ? arg : null;
-      wearOutfit(named || pickFrom(hatPool(), hatName), propName);
+      wearOutfit(arg || pickFrom(hatPool(), hatName), propName);
       break;
     }
     case "prop": {
-      if (!ballOn) setBall(true);
       const props = window.RockyProps.PROP_NAMES;
-      const named = props.includes(arg) ? arg : null;
+      if (arg && !props.includes(arg)) {
+        showBubble(`no prop "${arg}", question?`);
+        break;
+      }
+      if (!ballOn) setBall(true);
       const inSeason = propPool();
-      wearOutfit(hatName, named || pickFrom(inSeason.length ? inSeason : props, propName));
+      wearOutfit(hatName, arg || pickFrom(inSeason.length ? inSeason : props, propName));
       break;
     }
     case "dieciocho":
     case "spooky":
+    case "christmas":
       forcedSeason = forcedSeason === action ? null : action;
       if (!ballOn) setBall(true);
       enforcePool();
@@ -588,7 +596,7 @@ let ballOn = true;
 let hatName = "tophat";
 let hatSince = Date.now(); // when the current hat went on, for the rotation clock
 let propName = null; // what Rocky carries beside the ball, or nothing at all
-let forcedSeason = null; // `rocky dieciocho` / `rocky spooky` — that kit whatever the date
+let forcedSeason = null; // `rocky dieciocho|spooky|christmas` — that kit whatever the date
 let bodyLift = 0; // px Rocky floats above the baseline to sit inside the sphere
 let ballTopPx = 0; // tallest point of ball + hat, measured from Rocky's baseline
 let ballParts = [];
@@ -603,6 +611,9 @@ const SEPTEMBER = 8;
 const OCTOBER = 9;
 const DIECIOCHO_OVER_DAY = 20; // the fiesta kit is put away on the 20th
 const SPOOKY_ONLY_DAY = 25; // the last week of October is costumes only
+const NOVEMBER = 10;
+const DECEMBER = 11;
+const CHRISTMAS_START_DAY = 10; // mixes in from Nov 10, christmas-only all December
 
 function seasonNow(now = new Date()) {
   if (forcedSeason) return { season: forcedSeason, phase: "only" };
@@ -611,6 +622,8 @@ function seasonNow(now = new Date()) {
   if (month === AUGUST) return { season: "dieciocho", phase: "warmup" };
   if (month === SEPTEMBER && day < DIECIOCHO_OVER_DAY) return { season: "dieciocho", phase: "only" };
   if (month === OCTOBER) return { season: "spooky", phase: day < SPOOKY_ONLY_DAY ? "warmup" : "only" };
+  if (month === NOVEMBER && day >= CHRISTMAS_START_DAY) return { season: "christmas", phase: "warmup" };
+  if (month === DECEMBER) return { season: "christmas", phase: "only" };
   return null;
 }
 
@@ -688,6 +701,7 @@ function renderBall() {
     window.RockyHats.createHat(hatName, { diameter: BALL_DIAMETER_PX }),
     window.RockyHats.createAccessory(hatName, { diameter: BALL_DIAMETER_PX }),
     window.RockyProps.createProp(propName, { diameter: BALL_DIAMETER_PX }),
+    ...window.RockyProps.createAura(seasonNow()?.season, { diameter: BALL_DIAMETER_PX }),
   ]) {
     if (worn) ballParts.push(worn);
   }
@@ -994,7 +1008,7 @@ async function boot() {
   if (window.RockyHats.HAT_NAMES.includes(prefs.hat)) hatName = prefs.hat;
   if (typeof prefs.hatSince === "number") hatSince = prefs.hatSince;
   if (window.RockyProps.PROP_NAMES.includes(prefs.prop)) propName = prefs.prop;
-  if (["dieciocho", "spooky"].includes(prefs.season)) forcedSeason = prefs.season;
+  if (["dieciocho", "spooky", "christmas"].includes(prefs.season)) forcedSeason = prefs.season;
 
   paintFrozenFrame();
   showFrozen();

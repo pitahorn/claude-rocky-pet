@@ -317,6 +317,74 @@ body::before {
   }
 }
 
+/* The christmas kit. The glow sits behind the whole ball, Rocky included. */
+.ball-aura-glow {
+  z-index: -1;
+}
+
+.xmas-twinkle {
+  animation: rocky-twinkle 1.4s ease-in-out infinite;
+}
+
+@keyframes rocky-twinkle {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  30% {
+    opacity: 0.35;
+    transform: scale(0.6);
+  }
+  55% {
+    opacity: 0.85;
+    transform: scale(1.1);
+  }
+}
+
+.xmas-pulse {
+  animation: rocky-flicker 2.4s ease-in-out infinite;
+}
+
+/* Each flake sets its own duration and delay inline, so the snow never syncs up. */
+@keyframes rocky-snowfall {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+  12% {
+    opacity: 0.95;
+  }
+  45% {
+    transform: translate(5px, 54px);
+  }
+  80% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-3px, 120px);
+  }
+}
+
+.xmas-steam {
+  animation: rocky-steam 2.2s ease-out infinite;
+}
+
+@keyframes rocky-steam {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  35% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
 .hidden {
   display: none;
 }

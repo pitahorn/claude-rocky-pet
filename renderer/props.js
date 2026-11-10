@@ -333,6 +333,111 @@
     ]);
   }
 
+  // --- The christmas kit -------------------------------------------------------
+  const XMAS_RED = "#d42a2a";
+  const XMAS_GOLD = "#f2c94c";
+
+  function gift() {
+    return appendAll(propEl("g"), [
+      propEl("rect", { x: 12, y: 36, width: 76, height: 56, rx: 3, fill: XMAS_RED }),
+      propEl("rect", { x: 8, y: 26, width: 84, height: 16, rx: 3, fill: "#b81f1f" }),
+      propEl("rect", { x: 44, y: 26, width: 12, height: 66, fill: XMAS_GOLD }),
+      propEl("rect", { x: 8, y: 30, width: 84, height: 5, fill: "rgba(255,255,255,0.18)" }),
+      propEl("path", { d: "M50 26 Q30 2 22 14 Q18 26 50 26 Q82 26 78 14 Q70 2 50 26 Z", fill: XMAS_GOLD, stroke: "#b8902a", "stroke-width": 2 }),
+      propEl("circle", { cx: 50, cy: 25, r: 5, fill: "#b8902a" }),
+    ]);
+  }
+
+  // The stripes are a dashed red stroke laid over the white one, so they follow the hook.
+  const CANE = "M62 194 L62 52 Q62 16 40 16 Q18 16 18 42";
+
+  function candyCane() {
+    const stroke = { d: CANE, fill: "none", "stroke-linecap": "round" };
+    return appendAll(propEl("g", { transform: "rotate(8 50 100)" }), [
+      propEl("path", { ...stroke, stroke: "rgba(104,104,118,0.5)", "stroke-width": 21 }),
+      propEl("path", { ...stroke, stroke: "#fbfbf8", "stroke-width": 18 }),
+      propEl("path", { ...stroke, stroke: "#e0262f", "stroke-width": 18, "stroke-linecap": "butt", "stroke-dasharray": "9 11" }),
+    ]);
+  }
+
+  function cocoa() {
+    const steam = propEl("g", { fill: "none", stroke: "rgba(230,230,240,0.75)", "stroke-width": 3, "stroke-linecap": "round" });
+    [["M36 30 q-6 -9 0 -18 q6 -9 0 -18", "0s"], ["M54 30 q6 -9 0 -18 q-6 -9 0 -18", "-0.8s"]].forEach(([d, delay]) => {
+      steam.appendChild(propEl("path", { d, class: "xmas-steam", style: `animation-delay: ${delay}` }));
+    });
+    return appendAll(propEl("g"), [
+      steam,
+      propEl("path", { d: "M76 46 Q96 46 94 64 Q92 80 72 78", fill: "none", stroke: "#2f9e44", "stroke-width": 7 }),
+      propEl("path", { d: "M14 36 L80 36 L76 100 Q47 108 18 100 Z", fill: "#3fb556" }),
+      propEl("ellipse", { cx: 47, cy: 36, rx: 33, ry: 7, fill: "#6b3a1f" }),
+      propEl("rect", { x: 30, y: 30, width: 10, height: 8, rx: 2, fill: "#fbfbf8", transform: "rotate(-12 35 34)" }),
+      propEl("rect", { x: 48, y: 31, width: 10, height: 8, rx: 2, fill: "#fbfbf8", transform: "rotate(14 53 35)" }),
+      propEl("path", { d: "M22 44 L27 44 L26 96 L21 94 Z", fill: "rgba(255,255,255,0.22)" }),
+      propEl("path", { d: "M20 64 Q47 72 78 64", fill: "none", stroke: "#fbfbf8", "stroke-width": 4, "stroke-dasharray": "2 6", "stroke-linecap": "round" }),
+    ]);
+  }
+
+  // --- Aura ----------------------------------------------------------------------
+  // A season can light up the air around the ball. Two layers: a warm glow behind
+  // everything, and falling snow + sparkles in front. Box is 150x125 for a 100 ball.
+  const SNOWFLAKES = [
+    [14, 0, 7.2, 3],
+    [32, -3.1, 9.4, 2.4],
+    [58, -5.6, 8.1, 2.8],
+    [86, -1.4, 10.3, 2.2],
+    [112, -4.2, 7.8, 3.2],
+    [134, -6.5, 9, 2.6],
+    [74, -7.7, 11, 2],
+  ];
+  const SPARKLES = [
+    [18, 70, 0],
+    [130, 56, -0.7],
+    [104, 18, -1.3],
+    [40, 30, -1.9],
+    [140, 104, -0.4],
+  ];
+
+  function snowflake(x, delay, seconds, size) {
+    const arms = propEl("g", { stroke: "#ffffff", "stroke-width": 0.8, "stroke-linecap": "round" });
+    for (const angle of [0, 60, 120]) {
+      arms.appendChild(propEl("path", { d: `M0 ${-size} L0 ${size}`, transform: `rotate(${angle})` }));
+    }
+    arms.setAttribute("transform", `translate(${x} 0)`);
+    return appendAll(propEl("g", { style: `animation: rocky-snowfall ${seconds}s linear ${delay}s infinite` }), [arms]);
+  }
+
+  function sparkle(x, y, delay) {
+    return propEl("path", {
+      class: "xmas-twinkle",
+      style: `transform-origin: ${x}px ${y}px; animation-delay: ${delay}s`,
+      d: `M${x} ${y - 5} Q${x} ${y} ${x + 5} ${y} Q${x} ${y} ${x} ${y + 5} Q${x} ${y} ${x - 5} ${y} Q${x} ${y} ${x} ${y - 5} Z`,
+      fill: "#fff6c8",
+    });
+  }
+
+  function createAura(season, { diameter }) {
+    if (season !== "christmas") return [];
+    const size = diameter * 1.5;
+    const glow = propEl("svg", { class: "ball-layer ball-aura-glow", width: size, height: size, viewBox: "0 0 100 100" });
+    const gradientId = `rockyAura${(propInstances += 1)}`;
+    const gradient = propEl("radialGradient", { id: gradientId });
+    appendAll(gradient, [
+      propEl("stop", { offset: "0.45", "stop-color": "#ffe9a8", "stop-opacity": "0.45" }),
+      propEl("stop", { offset: "0.7", "stop-color": "#ffd166", "stop-opacity": "0.22" }),
+      propEl("stop", { offset: "1", "stop-color": "#ffd166", "stop-opacity": "0" }),
+    ]);
+    appendAll(glow, [gradient, propEl("circle", { class: "xmas-pulse", cx: 50, cy: 50, r: 50, fill: `url(#${gradientId})` })]);
+    glow.style.bottom = `${(-(size - diameter) / 2).toFixed(2)}px`;
+    glow.style.marginLeft = `${(-size / 2).toFixed(2)}px`;
+
+    const air = propEl("svg", { class: "ball-prop", width: size, height: diameter * 1.25, viewBox: "0 0 150 125" });
+    for (const flake of SNOWFLAKES) air.appendChild(snowflake(...flake));
+    for (const spot of SPARKLES) air.appendChild(sparkle(...spot));
+    air.style.bottom = "0px";
+    air.style.marginLeft = `${(-size / 2).toFixed(2)}px`;
+    return [glow, air];
+  }
+
   // widthRatio  — prop width as a fraction of the ball's diameter.
   // aspect      — prop height as a fraction of its own width.
   // sideRatio   — how far right of the ball's centre the prop is centred.
@@ -349,6 +454,9 @@
     ghost: { build: ghostie, aspect: 1, widthRatio: 0.32, sideRatio: 0.58, bottomRatio: 0.5, season: "spooky" },
     bat: { build: bat, aspect: 0.5, widthRatio: 0.44, sideRatio: 0.52, bottomRatio: 0.72, season: "spooky" },
     bucket: { build: candyBucket, aspect: 0.95, widthRatio: 0.36, sideRatio: 0.56, bottomRatio: 0.01, season: "spooky" },
+    gift: { build: gift, aspect: 0.95, widthRatio: 0.36, sideRatio: 0.56, bottomRatio: 0.01, season: "christmas" },
+    candycane: { build: candyCane, aspect: 2, widthRatio: 0.22, sideRatio: 0.54, bottomRatio: 0.01, season: "christmas" },
+    cocoa: { build: cocoa, aspect: 1.1, widthRatio: 0.34, sideRatio: 0.56, bottomRatio: 0.01, season: "christmas" },
   };
 
   const PROP_NAMES = Object.keys(PROPS);
@@ -376,5 +484,5 @@
     return svg;
   }
 
-  window.RockyProps = { PROP_NAMES, propsFor, createProp };
+  window.RockyProps = { PROP_NAMES, propsFor, createProp, createAura };
 })();
